@@ -5,6 +5,8 @@
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
 
 export const resolveWalletPath = (walletPath: string): string => {
     let wp = path.resolve(walletPath);
@@ -49,4 +51,19 @@ export const saneReadFile = (name: string): string => {
     }
 
     return fs.readFileSync(wp, 'utf8');
+};
+
+export const createIfAbsent = (name: string): void => {
+    const wp = path.resolve(name);
+    if (!fs.existsSync(wp)) {
+        mkdirp.sync(wp);
+    }
+};
+
+export const clean = (name: string): void => {
+    const wp = path.resolve(name);
+    if (fs.existsSync(wp)) {
+        rimraf.sync(wp);
+        mkdirp.sync(wp);
+    }
 };

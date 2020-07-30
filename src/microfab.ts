@@ -3,8 +3,12 @@ import { readFileSync, existsSync, writeFileSync } from 'fs';
 import * as mkdirp from 'mkdirp';
 import sanitize from 'sanitize-filename';
 import Identities from './identies';
+
 type callbackFn = (v: any) => void;
 import { log } from './log';
+
+import { shellcmds } from './shell';
+
 export default class MicrofabProcessor {
     public async process(
         configFile: string,
@@ -89,19 +93,28 @@ export default class MicrofabProcessor {
                     envvars[id.wallet].push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
                 }
 
-                dockerCmd.push(
-                    `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/cacerts/ca.pem > ${capem}`,
-                );
-                dockerCmd.push(
-                    `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/config.yaml > ${cfgpath}`,
-                );
+                // we don't need the orderer
+                if (id.wallet.toLowerCase() !== 'orderer') {
+                    dockerCmd.push(
+                        `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/cacerts/ca.pem > ${capem}`,
+                    );
+                    dockerCmd.push(
+                        `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/config.yaml > ${cfgpath}`,
+                    );
+                }
             },
         );
-        log({ msg: 'Environment variables' });
-        console.log(envvars);
-        log({ msg: 'Docker commands to get the final file parts' });
-        console.log(dockerCmd);
-        //await writeEnvVar(argv);
+
+        log({ msg: 'Running Docker commands to get the final file parts' });
+        const responses = await shellcmds(dockerCmd);
+       // log({ msg: responses.join() });
+
+        log({ msg: '\nEnvironment variables:' });
+        for (const org in envvars) {
+            log({ msg: org });
+            const value = envvars[org];
+            log({ msg: value.join('\n') });
+        }
     }
 
     async asyncForEach(array: any, callback: callbackFn): Promise<void> {
@@ -109,28 +122,4 @@ export default class MicrofabProcessor {
             await callback(array[index]);
         }
     }
-    // async writeEnvVar(argv) {
-    //     const cmds = `
-    // export CORE_PEER_ADDRESS="localhost:18051"
-
-    // # Identifity of the Organization
-    // export CORE_PEER_LOCALMSPID="${argv.org}"
-
-    // # Location of the wallet for the user to be used
-    // export CORE_PEER_MSPCONFIGPATH="${repo_root}/${argv.org}/${argv.user}"
-
-    // # If tls is enabled for the network communcations, and note the root certificate, and the Orderer's TLS cert
-    // export CORE_PEER_TLS_ENABLED="true"
-    // export CORE_PEER_TLS_ROOTCERT_FILE="${repo_root}/${argv.org}/tls-root.pem"
-    // export ORDERER_TLS_CERT=${repo_root}/Orderer/ca-tls-root.pem
-
-    // # Will need the TLS for each Peer
-    // export AMPRETIA_PEER_TLS=${repo_root}/${argv.org}/ampretiapeer1tls/ca.crt
-
-    // # Need the configuration directory, though no clear what is actually needed from it
-    // export FABRIC_CFG_PATH=/usr/local/config/
-    // `;
-
-    //     fs.writeFileSync(path.join(envpath, 'envvar.sh'), cmds);
-    // }
 }

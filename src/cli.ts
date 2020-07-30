@@ -12,6 +12,8 @@ import { getGatewayProfile } from './gateways';
 import { log } from './log';
 import MicrofabProcessor from './microfab';
 
+import { createIfAbsent, clean } from './userutils';
+
 const pjson = readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf-8');
 const version = JSON.parse(pjson).version;
 
@@ -87,9 +89,20 @@ yargs
                     describe: 'File with JSON configuration from Microfab  - for stdin',
                     default: '-',
                 },
+                force: { alias: 'f', describe: 'Force cleaning of directories', type: 'boolean', default: false },
             });
         },
         async (args) => {
+            createIfAbsent(args['profile'] as string);
+            createIfAbsent(args['wallet'] as string);
+            createIfAbsent(args['mspconfig'] as string);
+
+            if (args.force) {
+                clean(args['profile'] as string);
+                clean(args['wallet'] as string);
+                clean(args['mspconfig'] as string);
+            }
+
             const microFabProcessor = new MicrofabProcessor();
             await microFabProcessor.process(
                 args['config'] as string,
