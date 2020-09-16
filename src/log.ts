@@ -8,6 +8,6 @@ export const log = ({ msg = '>', val = '', error = false }: { msg?: string; val?
     if (error) {
         console.log(chalk.red(msg) + ' ' + val);
     } else {
-        console.log(chalk.white(msg) + ' ' + val);
+        console.log(chalk.blue(msg) + ' ' + val);
     }
 };

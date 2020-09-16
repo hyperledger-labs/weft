@@ -11,12 +11,12 @@
     "clean": "rimraf lib",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
-    "build": "npm run format && npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
+    "build": "npm run format && npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty && npm link",
     "release": "standard-version"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hyperledgendary/runhfsc"
+    "url": "https://github.com/hyperledgendary/weftility"
   },
   "keywords": [
     "fabric-ledger",

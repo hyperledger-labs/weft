@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as path from 'path';
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import * as mkdirp from 'mkdirp';
@@ -6,8 +10,6 @@ import Identities from './identies';
 
 type callbackFn = (v: any) => void;
 import { log } from './log';
-
-import { shellcmds } from './shell';
 
 export default class MicrofabProcessor {
     public async process(
@@ -54,16 +56,22 @@ export default class MicrofabProcessor {
                     e.push(`export CORE_PEER_LOCALMSPID=${gateway.organizations[org].mspid}`);
                     e.push(`export CORE_PEER_ADDRESS=${gateway.organizations[org].peers[0]}`);
                     envvars[org as string] = e;
-
-                    //console.log(gateway);
                 },
             );
 
-        const dockerCmd: string[] = [];
         // locate the identities
+        interface IdStructure {
+            wallet: string;
+            name: string;
+            id: string;
+            private_key: string;
+            cert: string;
+            ca: string;
+        }
+
         await this.asyncForEach(
             config.filter((c: { type: string }) => c.type === 'identity'),
-            async (id: { wallet: any; name: any; id: any; private_key: string; cert: string }) => {
+            async (id: IdStructure) => {
                 const fullWalletPath = path.resolve(walletpath, sanitize(id.wallet));
                 mkdirp.sync(fullWalletPath);
                 id.name = id.id;
@@ -78,40 +86,25 @@ export default class MicrofabProcessor {
                 mkdirp.sync(path.join(cryptoroot, 'msp', 'cacerts'));
                 mkdirp.sync(path.join(cryptoroot, 'msp', 'keystore'));
                 mkdirp.sync(path.join(cryptoroot, 'msp', 'signcerts'));
+                mkdirp.sync(path.join(cryptoroot, 'msp', 'admincerts'));
 
                 const privateKey = Buffer.from(id.private_key, 'base64').toString();
                 const pemfile = Buffer.from(id.cert, 'base64').toString();
+                const capem = Buffer.from(id.ca, 'base64').toString();
                 writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `${id.id}.pem`), pemfile);
+                writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `${id.id}.pem`), pemfile);
                 writeFileSync(path.join(cryptoroot, 'msp', 'keystore', `cert_sk`), privateKey);
-
-                const capem = path.join(cryptoroot, 'msp', 'cacerts', 'ca.pem');
-                const cfgpath = path.join(cryptoroot, 'msp', 'config.yaml');
-
-                // console.log(id);
+                writeFileSync(path.join(cryptoroot, 'msp', 'cacerts', 'ca.pem'), capem);
 
                 if (envvars[id.wallet]) {
                     envvars[id.wallet].push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
                 }
-
-                // we don't need the orderer
-                if (id.wallet.toLowerCase() !== 'orderer') {
-                    dockerCmd.push(
-                        `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/cacerts/ca.pem > ${capem}`,
-                    );
-                    dockerCmd.push(
-                        `docker exec -t microfab cat /opt/microfab/data/peer-${id.wallet.toLowerCase()}/msp/config.yaml > ${cfgpath}`,
-                    );
-                }
             },
         );
 
-        log({ msg: 'Running Docker commands to get the final file parts' });
-        const responses = await shellcmds(dockerCmd);
-       // log({ msg: responses.join() });
-
         log({ msg: '\nEnvironment variables:' });
         for (const org in envvars) {
-            log({ msg: org });
+            log({ msg: `For ${org} use these:\n` });
             const value = envvars[org];
             log({ msg: value.join('\n') });
         }

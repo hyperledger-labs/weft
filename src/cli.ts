@@ -78,7 +78,7 @@ yargs
     )
     .command(
         'microfab',
-        'Process the Microfab output',
+        'Process the ibp-microfab output',
         (yargs) => {
             return yargs.options({
                 wallet: { alias: 'w', describe: 'Path to parent directory of application wallets', demandOption: true },
