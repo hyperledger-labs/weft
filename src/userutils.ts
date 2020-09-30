@@ -8,14 +8,18 @@ import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 import rimraf from 'rimraf';
 
-export const resolveWalletPath = (walletPath: string): string => {
+export const resolveWalletPath = (walletPath: string, create?: boolean): string => {
     let wp = path.resolve(walletPath);
     if (!fs.existsSync(wp)) {
         // so doesn't exist so try to check a default location
         const homeWalletPath = path.join(os.homedir(), '.ibpwallets', walletPath);
         if (!fs.existsSync(homeWalletPath)) {
-            // give up
-            throw new Error(`Can not locate wallet ${wp} or ${homeWalletPath}`);
+            if (create) {
+                mkdirp.sync(homeWalletPath);
+            } else {
+                // give up
+                throw new Error(`Can not locate wallet ${wp} or ${homeWalletPath}`);
+            }
         } else {
             wp = homeWalletPath;
         }
