@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-task
+spec:
+  params:
+    - name: repository
+      description: the git repo
+    - name: branch
+      description: the branch
+  workspaces:
+  - name: code
+    mountPath: /code
+  steps:
+    - name: pre-build-check
+      image: calanais/warp
+      env:
+        - name: HOME
+          value: "/home/fabdev"
+      command: ["/bin/bash", "-c"]
+      args:
+        - cd $(workspaces.code.path);
+        - npm install && npm run build;
+      securityContext:
+        runAsUser: 1000      
