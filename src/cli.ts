@@ -46,17 +46,23 @@ yargs
         (yargs) => {
             return yargs.options({
                 wallet: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
-                name: { alias: 'n', describe: 'Name of the new user for the app wallet', demandOption: true },
+                mspid: { alias: 'm', describe: 'MSPID to assign in this wallet', demandOption: true },
                 json: { alias: 'j', describe: 'File of the JSON identity', demandOption: true },
+                createwallet: {
+                    alias: 'c',
+                    describe: 'Create the wallet if not present',
+                    type: 'boolean',
+                    default: false,
+                },
             });
         },
         async (args) => {
             log({ msg: 'Adding IBP identity' });
             // resolve the supplied gateway and wallet paths
-            const walletPath = resolveWalletPath(args['wallet'] as string);
+            const walletPath = resolveWalletPath(args['wallet'] as string, args['createwallet'] as boolean);
 
             const idtools = new Identities(walletPath);
-            await idtools.importToWallet(saneReadFile(args['json'] as string));
+            await idtools.importToWallet(saneReadFile(args['json'] as string), args['mspid'] as string);
         },
     )
     .command(
@@ -120,5 +126,6 @@ yargs
     .version(`weft v${version}`)
     .help()
     .strict()
+    .demandCommand()
     .epilog('For usage see https://github.com/hyperledendary/weftility')
     .describe('v', 'show version information').argv;

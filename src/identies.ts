@@ -22,12 +22,16 @@ export default class Identities {
         });
     }
 
-    async importToWallet(jsonIdentity: string): Promise<void> {
+    async importToWallet(jsonIdentity: string, mspid?: string): Promise<void> {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.resolve(this.walletpath);
         const wallet = await Wallets.newFileSystemWallet(walletPath);
 
         const id = JSON.parse(jsonIdentity);
+
+        if (!id.msp_id) {
+            id.msp_id = mspid;
+        }
 
         // Check to see if we've already got the user.
         const userIdentity = await wallet.get(id.name);
