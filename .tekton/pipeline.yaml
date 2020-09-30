@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline
+spec:
+  params:
+    - name: repository
+      description: the git repo
+    - name: branch
+      description: the branch for the git repo
+    - name: git-access-token
+      value: $(params.git-access-token)      
+  workspaces:
+  - name: code
+  tasks:
+    - name: fetch-from-git
+      taskRef:
+        # Catalog task: https://github.com/open-toolchain/tekton-catalog/tree/master/git
+        name: git-clone-repo
+      params:
+        - name: repository
+          value: $(params.repository)
+        - name: branch
+          value: $(params.branch)
+        - name: git-access-token
+          value: $(params.git-access-token)
+      workspaces:
+        - name: output
+          workspace: code
+    - name: pipeline-build-task
+      taskRef:
+        name: build-task
+      runAfter:
+        - fetch-from-git        
+      params:
+        - name: repository
+          value: $(params.repository)
+        - name: branch
+          value: $(params.branch)  
+      workspaces:
+      - name: code
+        workspace: code          
