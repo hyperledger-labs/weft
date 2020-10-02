@@ -2,7 +2,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import * as path from 'path';
-import { Wallets } from 'fabric-network';
+import * as WalletMigration from 'fabric-wallet-migration';
+import { Wallets, Wallet } from 'fabric-network';
 import FabricCAServices from 'fabric-ca-client';
 import { log } from './log';
 export default class Identities {
@@ -22,10 +23,16 @@ export default class Identities {
         });
     }
 
-    async importToWallet(jsonIdentity: string, mspid?: string): Promise<void> {
+    async importToWallet(jsonIdentity: string, mspid?: string, compat?: boolean): Promise<void> {
         // Create a new file system based wallet for managing identities.
         const walletPath = path.resolve(this.walletpath);
-        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        let wallet;
+        if (compat) {
+            const walletStore = await WalletMigration.newFileSystemWalletStore(walletPath);
+            wallet = new Wallet(walletStore);
+        } else {
+            wallet = await Wallets.newFileSystemWallet(walletPath);
+        }
 
         const id = JSON.parse(jsonIdentity);
 
