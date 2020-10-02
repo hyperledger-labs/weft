@@ -61,15 +61,12 @@ yargs
             log({ msg: 'Adding IBP identity' });
             // resolve the supplied gateway and wallet paths
             const walletPath = resolveWalletPath(args['wallet'] as string, args['createwallet'] as boolean);
-
-            if (!args['compat']) {
-                const idtools = new Identities(walletPath);
-                await idtools.importToWallet(saneReadFile(args['json'] as string), args['mspid'] as string);
-            } else {
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const { importToWallet } = require('../facade-14/index.js');
-                await importToWallet(walletPath, saneReadFile(args['json'] as string), args['mspid'] as string);
-            }
+            const idtools = new Identities(walletPath);
+            await idtools.importToWallet(
+                saneReadFile(args['json'] as string),
+                args['mspid'] as string,
+                args['compat'] as boolean,
+            );
         },
     )
     .command(

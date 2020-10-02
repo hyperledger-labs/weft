@@ -45,6 +45,7 @@
     "cliffy": "^2.3.0",
     "fabric-ca-client": "^2.2.1",
     "fabric-network": "^2.2.0",
+    "fabric-wallet-migration": "^0.2.0",
     "js-yaml": "^3.14.0",
     "mkdirp": "^1.0.4",
     "rimraf": "^3.0.2",
