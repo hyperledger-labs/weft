@@ -1,18 +1,16 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
-import Identities from "./identies"
-import MicrofabProcessor from "./microfab";
-import {getGatewayProfile} from "./gateways"
+import Identities from './identies';
+import MicrofabProcessor from './microfab';
+import { getGatewayProfile } from './gateways';
 
 const Infrastructure = {
-    MicrofabProcessor
-}
+    MicrofabProcessor,
+};
 
 const Utility = {
-    getGatewayProfile
-}
+    getGatewayProfile,
+};
 
 export { Identities, Infrastructure, Utility };
-
-

@@ -48,6 +48,7 @@ yargs
                 wallet: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
                 mspid: { alias: 'm', describe: 'MSPID to assign in this wallet', demandOption: true },
                 json: { alias: 'j', describe: 'File of the JSON identity', demandOption: true },
+                compat: { alias: 'c', decribe: 'Set to use the 1.4 wallet formate', default: false, type: 'boolean' },
                 createwallet: {
                     alias: 'c',
                     describe: 'Create the wallet if not present',
@@ -61,8 +62,14 @@ yargs
             // resolve the supplied gateway and wallet paths
             const walletPath = resolveWalletPath(args['wallet'] as string, args['createwallet'] as boolean);
 
-            const idtools = new Identities(walletPath);
-            await idtools.importToWallet(saneReadFile(args['json'] as string), args['mspid'] as string);
+            if (!args['compat']) {
+                const idtools = new Identities(walletPath);
+                await idtools.importToWallet(saneReadFile(args['json'] as string), args['mspid'] as string);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const { importToWallet } = require('../facade-14/index.js');
+                await importToWallet(walletPath, saneReadFile(args['json'] as string), args['mspid'] as string);
+            }
         },
     )
     .command(
