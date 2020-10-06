@@ -1,0 +1,80 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: find-out
+spec:
+  params:
+   - name: pipeline-debug
+     description: Pipeline debug mode
+     default: "0"
+  workspaces:
+    - name: workspace
+      description: |
+        A workspace that contain data useful for the script/slack message resolution.
+        Should be marked as optional when Tekton will permit it
+      mountPath: /artifacts
+  results:
+    - name: output
+      description: task run output
+    - name: result
+      description: task run result         
+  steps:
+    - name: stuff
+      # tbd: use an image with curl and jq?
+      image: ibmcom/pipeline-base-image:2.6
+      env:
+        - name: PIPELINE_RUN_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/pipelineRun']
+        - name: PIPELINE_RUN_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/tekton-pipeline']
+        - name: PIPELINE_RUN_URL
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/pipeline-run-url']
+        - name: BUILD_NUMBER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/build-number']
+        - name: PIPELINE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/pipeline-id']
+        - name: TRIGGER_TYPE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/trigger-type']
+        - name: TRIGGER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/trigger-name']
+        - name: TRIGGERED_BY
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/triggered-by']
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -e -o pipefail
+          cat /cd-config/toolchain.json | jq
+          env
+          echo $? > $(results.result.path)
+          echo "Build has failed" > $(results.output.path)
+      volumeMounts:
+        - mountPath: /steps
+          name: steps-volume
+        - mountPath: /cd-config
+          name: cd-config-volume
+  volumes:
+    - name: steps-volume
+      emptyDir: {}
+    - name: cd-config-volume
+      configMap:
+        name: toolchain
+        items:
+          - key: toolchain.json
+            path: toolchain.json

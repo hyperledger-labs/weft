@@ -48,9 +48,9 @@ yargs
                 wallet: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
                 mspid: { alias: 'm', describe: 'MSPID to assign in this wallet', demandOption: true },
                 json: { alias: 'j', describe: 'File of the JSON identity', demandOption: true },
-                compat: { alias: 'c', decribe: 'Set to use the 1.4 wallet formate', default: false, type: 'boolean' },
+                compat: { alias: 'c', decribe: 'Set to use the 1.4 wallet format', default: false, type: 'boolean' },
                 createwallet: {
-                    alias: 'c',
+                    alias: 'r',
                     describe: 'Create the wallet if not present',
                     type: 'boolean',
                     default: false,
