@@ -31,7 +31,7 @@ export default class MicrofabProcessor {
         }
 
         interface EnvVars {
-            [org: string]: string[];
+            [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string } };
         }
 
         const envvars: EnvVars = {};
@@ -45,17 +45,18 @@ export default class MicrofabProcessor {
                 (gateway: {
                     id: string;
                     client: { organization: string };
-                    organizations: { [name: string]: { mspid: string; peers: string } };
+                    organizations: { [name: string]: { mspid: string; peers: string[] } };
                 }) => {
                     const profilePath = path.resolve(gatewaypath, `${sanitize(gateway.id)}.json`);
                     writeFileSync(profilePath, JSON.stringify(gateway));
-
+                    log({ msg: `Gateway profile written to : ${profilePath}` });
                     const org = gateway.client.organization;
-                    const e = [];
 
-                    e.push(`export CORE_PEER_LOCALMSPID=${gateway.organizations[org].mspid}`);
-                    e.push(`export CORE_PEER_ADDRESS=${gateway.organizations[org].peers[0]}`);
-                    envvars[org as string] = e;
+                    envvars[org as string] = {
+                        mspid: gateway.organizations[org].mspid,
+                        peers: gateway.organizations[org].peers as string[],
+                        ids: {},
+                    };
                 },
             );
 
@@ -97,16 +98,23 @@ export default class MicrofabProcessor {
                 writeFileSync(path.join(cryptoroot, 'msp', 'cacerts', 'ca.pem'), capem);
 
                 if (envvars[id.wallet]) {
-                    envvars[id.wallet].push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
+                    envvars[id.wallet].ids[id.id] = path.join(cryptoroot, 'msp'); //push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
                 }
             },
         );
 
         log({ msg: '\nEnvironment variables:' });
         for (const org in envvars) {
-            log({ msg: `For ${org} use these:\n` });
             const value = envvars[org];
-            log({ msg: value.join('\n') });
+            for (const id in value.ids) {
+                log({ msg: `\nFor ${id} @  ${org} use these:\n` });
+                console.log(`export CORE_PEER_LOCALMSPID=${value.mspid}`);
+                console.log(`export CORE_PEER_MSPCONFIGPATH=${value.ids[id]}`);
+                value.peers.forEach((p) => {
+                    console.log(`export CORE_PEER_ADDRESS=${p}`);
+                });
+                // log({ msg: JSON.stringify(value) });
+            }
         }
     }
 
