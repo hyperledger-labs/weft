@@ -13,6 +13,7 @@ import { log } from './log';
 import MicrofabProcessor from './microfab';
 
 import { createIfAbsent, clean } from './userutils';
+import MSP from './msp';
 
 const pjson = readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf-8');
 const version = JSON.parse(pjson).version;
@@ -42,7 +43,7 @@ yargs
     )
     .command(
         'import',
-        'Imports IBP identity and adds to wallet',
+        'Imports IBP identity and adds to application wallet',
         (yargs) => {
             return yargs.options({
                 wallet: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
@@ -122,6 +123,24 @@ yargs
             );
 
             // resolve the supplied gateway and wallet paths
+        },
+    )
+    .command(
+        'msp',
+        'Imports IBP identity to MSP for Peer commands',
+        (yargs) => {
+            return yargs.options({
+                mspconfig: { alias: 'd', describe: 'Path to the root directory of the MSP config', demandOption: true },
+                mspid: { alias: 'm', describe: 'MSPID to assign in this wallet', demandOption: true },
+                json: { alias: 'j', describe: 'File of the JSON identity', demandOption: true },
+            });
+        },
+        async (args) => {
+            log({ msg: 'Creating MSP structure' });
+            // resolve the supplied gateway and wallet paths
+            const msp = new MSP();
+            const rootdir = createIfAbsent(args['mspconfig'] as string);
+            msp.writeId(rootdir, saneReadFile(args['json'] as string), args['mspid'] as string);
         },
     )
     .help()
