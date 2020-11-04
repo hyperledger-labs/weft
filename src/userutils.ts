@@ -57,11 +57,12 @@ export const saneReadFile = (name: string): string => {
     return fs.readFileSync(wp, 'utf8');
 };
 
-export const createIfAbsent = (name: string): void => {
+export const createIfAbsent = (name: string): string => {
     const wp = path.resolve(name);
     if (!fs.existsSync(wp)) {
         mkdirp.sync(wp);
     }
+    return wp;
 };
 
 export const clean = (name: string): void => {
