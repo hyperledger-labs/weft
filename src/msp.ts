@@ -10,14 +10,25 @@ import sanitize from 'sanitize-filename';
 // import { log } from './log';
 
 export default class MSP {
+    /** create the directory structure for the msp directory
+     *
+     */
     public createStructure(cryptoroot: string): void {
         mkdirp.sync(path.join(cryptoroot, 'msp'));
         mkdirp.sync(path.join(cryptoroot, 'msp', 'cacerts'));
         mkdirp.sync(path.join(cryptoroot, 'msp', 'keystore'));
         mkdirp.sync(path.join(cryptoroot, 'msp', 'signcerts'));
         mkdirp.sync(path.join(cryptoroot, 'msp', 'admincerts'));
+        mkdirp.sync(path.join(cryptoroot, 'tls'));
     }
 
+    /**
+     * Write an individual id based on the jsonIdentity supplied
+     *
+     * @param rootdir
+     * @param jsonIdentity
+     * @param mspid
+     */
     public writeId(rootdir: string, jsonIdentity: string, mspid?: string): void {
         const id = JSON.parse(jsonIdentity);
 

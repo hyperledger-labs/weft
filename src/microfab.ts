@@ -11,8 +11,12 @@ import Identities from './identies';
 type callbackFn = (v: any) => void;
 import { log } from './log';
 
-export default class MicrofabProcessor {
-    public async process(
+export interface EnvVars {
+    [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string } };
+}
+
+export class MicrofabProcessor {
+    public async processFile(
         configFile: string,
         gatewaypath: string,
         walletpath: string,
@@ -30,14 +34,22 @@ export default class MicrofabProcessor {
             cfgStr = readFileSync(microfabConfig).toString();
         }
 
-        interface EnvVars {
-            [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string } };
-        }
-
-        const envvars: EnvVars = {};
-
         const config = JSON.parse(cfgStr);
+        await this.process({ config, gatewaypath, walletpath, cryptopath });
+    }
 
+    public async process({
+        config,
+        gatewaypath,
+        walletpath,
+        cryptopath,
+    }: {
+        config: any;
+        gatewaypath: string;
+        walletpath: string;
+        cryptopath: string;
+    }): Promise<EnvVars> {
+        const envvars: EnvVars = {};
         // locate the gateways in the file, and create the connection profile
         config
             .filter((c: { type: string }) => c.type === 'gateway')
@@ -116,6 +128,7 @@ export default class MicrofabProcessor {
                 // log({ msg: JSON.stringify(value) });
             }
         }
+        return envvars;
     }
 
     async asyncForEach(array: any, callback: callbackFn): Promise<void> {

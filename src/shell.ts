@@ -5,6 +5,7 @@
 */
 
 import { spawn } from 'child_process';
+import { log } from './log';
 
 // A general purpose structure that can be used for any command.
 // This defines the important 'spawn' command. This executes the command
@@ -31,7 +32,7 @@ class Cmd {
         const promise = new Promise((resolve, reject) => {
             const _name = this.toString();
             // eslint-disable-next-line no-console
-            console.log(`spawning:: ${_name} in ${cwd}`);
+            log({ msg: `spawning:: ${_name} in ${cwd}` });
             const call = spawn(this.cmd, this.args, {
                 env: process.env,
                 shell: true,
@@ -42,7 +43,7 @@ class Cmd {
             this.stdoutstr = [];
             call.on('exit', (code) => {
                 // eslint-disable-next-line no-console
-                console.log(`spawning:: ${_name} code::${code}`);
+                log({ msg: `exit:: ${_name} code::${code}`, error: code !== 0 });
                 if (code === 0) {
                     resolve(0);
                 } else {
@@ -51,7 +52,7 @@ class Cmd {
             });
             call.stdout.on('data', (data) => {
                 const s = data.toString('utf8');
-                console.log(s.slice(0, s.length - 1));
+                log({ msg: s.slice(0, s.length - 1) });
                 this.stdoutstr.push(s);
             });
             return call;
