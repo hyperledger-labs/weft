@@ -139,10 +139,10 @@ yargs
         },
         async (args) => {
             log({ msg: 'Exporting identity for IBP' });
-            
+
             // resolve the supplied gateway and wallet paths
             const walletPath = resolveWalletPath(args['wallet'] as string, args['createwallet'] as boolean);
-            const idtools = new Identities(walletPath,args['compat'] as boolean);
+            const idtools = new Identities(walletPath, args['compat'] as boolean);
             await idtools.exportFromWallet(args['name'] as string, args['json'] as string);
         },
     )
