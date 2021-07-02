@@ -1,18 +1,20 @@
 # Weftility
 
-Simple command line utility and module, to help work with the identity and connection files from Hyperledger Fabric and IBM Blockchain Platform (IBP) and convert between the two. This is intended to be a complement to the existing tools for each product. The code here is based on that in the hyperledger/fabric-samples repo.
+Simple command line utility and module, to help work with the identity and connection files from Hyperledger Fabric Peers, Fabric SDKs and IBM Blockchain Platform (IBP) and convert between them. This is intended to be a complement to the existing tools for each product. A lot of the code here is based on that in [hyperledger/fabric-samples](github.com/hyperledger/fabric-samples)
 
-The end goals are to obtain from however the Fabric infrastructure is created. 
+The end goals are to obtain, irrespective of how the Fabric infrastructure is created. 
 
 - an *application wallet* for the Client SDKs to use to get identies
 - the *gateway connection profile to let the Client SDKs to connect
 - a MSP directory structure to permit the Fabric Peer CLIs to function
+- a set of JSON 'node' files to let the VSCode Blockchain Extension to connect [WIP]
 
 **weft** /wɛft/ _noun_
 
 (in weaving) the crosswise threads on a loom that are passed over and under the warp threads to make cloth.
 
-NOTE: not formally supported software, this is a community resource, and is under develoment. PRs welcome
+
+> NOTE: not formally supported software, this is a community resource. PRs welcome :-)
 
 ## Installation
 
@@ -159,8 +161,6 @@ In a suitable shell, copy and execute the `export...` commands. Note that this i
 
 **This therefore gives you the ability to use both the SDKs, and the peer commands to interact with microfab.**
 
-
-
 ## Use with IBP Instance - Ansible
 
 It is recommended to use Ansible to update, and manitain an IBP instance in production. Ansible tasks are available that can create identies, and deploy chaincodes. It produces the gateway connection profile as JSON that can be used directly in the application. 
@@ -177,6 +177,7 @@ The peer commands don't really don't need to used in this case, as ansible shoul
 ## With the fabric-samples test network
 
 From a working directory (that doesn't have the fabric-samplesl repo already), eg `~/github.com/` run this
+
 ```
 curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.2.1 1.4.9
 ```
