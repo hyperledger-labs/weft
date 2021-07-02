@@ -191,86 +191,55 @@ If you've run this before, or any other version of this test-network, there is a
 
 ### Gateway Connection Profile
 
-There are two gateway connection profiles created
+There are two gateway connection profiles created, these can be used directly by an application
 ```
 ls "./organizations/peerOrganizations/org1.exampl.com/connection-org1.yaml" 
 ls "./organizations/peerOrganizations/org2.example.com/connection-org2.yaml" 
 ```
 
+### To use the Peer Commands
+
+Assuming nthat the testnetwork is defined something like this `export TEST_NETWORK_DIR='...../fabric-samples/test-network'` then these environment variables will configure the peer commands to work with the test-network directly.
+
 For Org1:
 ```
+
 export CORE_PEER_ADDRESS="localhost:7051"
 export CORE_PEER_LOCALMSPID="Org1MSP"
-export CORE_PEER_MSPCONFIGPATH="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+export CORE_PEER_MSPCONFIGPATH="$TEST_NETWORK_DIR/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
 export CORE_PEER_TLS_ENABLED="true"
-export CORE_PEER_TLS_ROOTCERT_FILE="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
-export ORDERER_CA="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+export CORE_PEER_TLS_ROOTCERT_FILE="$TEST_NETWORK_DIR/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+export ORDERER_CA="$TEST_NETWORK_DIR/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
 ```
 
 For Org2:
 ```
 export CORE_PEER_ADDRESS="localhost:9051"
 export CORE_PEER_LOCALMSPID="Org2MSP"
-export CORE_PEER_MSPCONFIGPATH="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp"
+export CORE_PEER_MSPCONFIGPATH="/$TEST_NETWORK_DIR/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp"
 export CORE_PEER_TLS_ENABLED="true"
-export CORE_PEER_TLS_ROOTCERT_FILE="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
-export FABRIC_CFG_PATH="/home/matthew/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/../../../config"
-export ORDERER_CA="/home/matthew/github.com/hyperledger/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
-
+export CORE_PEER_TLS_ROOTCERT_FILE="$TEST_NETWORK_DIR/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+export ORDERER_CA="/$TEST_NETWORK_DIR/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
 ```
 
-      peer lifecycle chaincode package cp.tar.gz --lang node --path ./contract --label cp_0
-      peer lifecycle chaincode install cp.tar.gz
+### To get an application identity
 
-      export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
-      echo $PACKAGE_ID
-
-      peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
-                                                --channelID mychannel  \
-                                                --name papercontract  \
-                                                -v 0  \
-                                                --package-id $PACKAGE_ID \
-                                                --sequence 1  \
-                                                --tls  \
-                                                --cafile $ORDERER_CA
-
-      peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
-
-
-
-
-            peer lifecycle chaincode package cp.tar.gz --lang node --path ./contract --label cp_0
-      peer lifecycle chaincode install cp.tar.gz
-
-      export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
-      echo $PACKAGE_ID
-
-      peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
-                                                --channelID mychannel  \
-                                                --name papercontract  \
-                                                -v 0  \
-                                                --package-id $PACKAGE_ID \
-                                                --sequence 1  \
-                                                --tls  \
-                                                --cafile $ORDERER_CA
-
-      peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
-
-      peer lifecycle chaincode commit -o localhost:7050 \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
-                                --ordererTLSHostnameOverride orderer.example.com \
-                                --channelID mychannel --name papercontract -v 0 \
-                                --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent
-
-To enroll the admin user for Org1:
+To enroll the admin user for Org1, for example:
 ```
 weft enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid admin --enrollpwd adminpw -r
 ```
 
+You can then register and enroll as many ids as needed
 
+```
+weft register --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --adminName admin --enrollid=FredBlogs
+```
 
+Fred can now be enrolled and then the identity used.
+
+```
+weft enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid FredBlogs --enrollpwd <output from the register cmd> -r
+```
 
 ## Use as a module
 
