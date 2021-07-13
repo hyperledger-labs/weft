@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.9](https://github.com/hyperledgendary/weftility/compare/v0.0.8...v0.0.9) (2021-07-13)
+
+
+### Bug Fixes
+
+* docs updates ([37a0524](https://github.com/hyperledgendary/weftility/commit/37a05242c03cf472e49ea0fab48e3621349b5845))
+* update dependencies ([95c0872](https://github.com/hyperledgendary/weftility/commit/95c0872697ce21c85903534fceefa0a11dd741c0))
+
 ### [0.0.8](https://github.com/hyperledgendary/weftility/compare/v0.0.7...v0.0.8) (2020-10-13)
 
 ### [0.0.7](https://github.com/hyperledgendary/weftility/compare/v0.0.6...v0.0.7) (2020-10-02)
