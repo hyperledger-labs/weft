@@ -32,10 +32,11 @@ npm install -g @hyperledgendary/weft
 weft [command]
 
 Commands:
-  weft enroll    Enrolls CA identity and adds to wallet
-  weft import    Imports IBP identity and adds to wallet
-  weft ls        Lists Application Wallet identities
-  weft microfab  Process the Microfab output
+  weft wallet    Work with a SDK Application Wallet
+  weft mspids    Work with the MSP Credentials Directory structure
+  weft ca        Work with the Fabric CA for identities
+  weft microfab  Process the ibp-microfab output; generates MSPCreds, Connection Profiles and Application wallets
+
 
 Options:
   --help         Show help  [boolean]
@@ -44,13 +45,58 @@ Options:
 For usage see https://github.com/hyperledendary/weftility
 ```
 
-## Demos
 
-There are 3 interactive scenarios here, that start with setting up a Fabric Network and then getting the gateway connection profile and an application wallet, and also if required the configuration needed for the Fabric Peer commands.
+## Working Application Wallets
+
+The v1.4 and v2 Application SDKs use a 'Wallet', typically stored on disk. You will at some point need to interact with these client sdks in-order to write an application. ft
+
+```
+weft wallet
+
+Work with a SDK Application Wallet
+
+Commands:
+  weft wallet import  Imports identities into an application wallet
+  weft wallet export  Exports identities from an application wallet
+  weft wallet ls      Lists Application Wallet identities
+
+Options:
+      --help          Show help  [boolean]
+  -v, --version       Show version number  [boolean]
+  -w, --walletpath    Path to application wallet  [required]
+  -c, --compat        Set to use the 1.4 wallet format  [boolean] [default: false]
+  -r, --createwallet  Create the wallet if not present  [boolean] [default: false]
+  -f, --force         If the identity is already present, force overwrite it  [boolean] [default: false]
+```
+
+You can *import*, *export* or *list* identities in the application wallet. 
+
+For *import* you can import an identity either the JSON IBP format, or the MSPCredentials disk format.
+
+```
+Imports identities into an application wallet
+
+Commands:
+  weft wallet import mspcreds  Import form MSP Credentials directory format
+  weft wallet import ibp       Imports IBP identity and adds to application wallet
+
+Options:
+      --help          Show help  [boolean]
+  -v, --version       Show version number  [boolean]
+  -w, --walletpath    Path to application wallet  [required]
+  -c, --compat        Set to use the 1.4 wallet format  [boolean] [default: false]
+  -r, --createwallet  Create the wallet if not present  [boolean] [default: false]
+  -f, --force         If the identity is already present, force overwrite it  [boolean] [default: false]
+  -m, --mspid         MSPID to assign in this wallet  [required]
+```
 
 
 
-### Demo with Microfab
+## Usage
+
+There are three scenarios here, with different starting points to show you how to get started.
+
+### Using with Microfab
 As an example let's start a Microfab instance with 2 organizations
 
 ```
@@ -161,14 +207,14 @@ In a suitable shell, copy and execute the `export...` commands. Note that this i
 
 **This therefore gives you the ability to use both the SDKs, and the peer commands to interact with microfab.**
 
-## Use with IBP Instance - Ansible
+## Use with IBP Instance
 
-It is recommended to use Ansible to update, and manitain an IBP instance in production. Ansible tasks are available that can create identies, and deploy chaincodes. It produces the gateway connection profile as JSON that can be used directly in the application. 
+It is recommended to use the [Ansible IBP Collection] to update, and maintain an IBP instance in production. Ansible tasks are available that can create identies, and deploy chaincodes. It produces the gateway connection profile as JSON that can be used directly in the application. 
 
-The indentities are in the IBP json format. Import these into an application wallet as follows.
+The identities are in the IBP json format. Import these into an application wallet as follows.
 
 ```
-weft import --wallet ./_wallets/ --mspid  org1_msp_id  --json ./newid_appid.json
+weft wallet import --wallet ./_wallets/ --mspid  org1_msp_id  --json ./newid_appid.json
 # add the -c option if the wallet should be written for use with 1.4 sdks.
 ```
 
@@ -199,7 +245,7 @@ ls "./organizations/peerOrganizations/org2.example.com/connection-org2.yaml"
 
 ### To use the Peer Commands
 
-Assuming nthat the testnetwork is defined something like this `export TEST_NETWORK_DIR='...../fabric-samples/test-network'` then these environment variables will configure the peer commands to work with the test-network directly.
+Assuming that the testnetwork is defined something like this `export TEST_NETWORK_DIR='...../fabric-samples/test-network'` then these environment variables will configure the peer commands to work with the test-network directly.
 
 For Org1:
 ```
@@ -226,19 +272,19 @@ export ORDERER_CA="/$TEST_NETWORK_DIR/organizations/ordererOrganizations/example
 
 To enroll the admin user for Org1, for example:
 ```
-weft enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid admin --enrollpwd adminpw -r
+weft ca enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid admin --enrollpwd adminpw -r
 ```
 
 You can then register and enroll as many ids as needed
 
 ```
-weft register --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --adminName admin --enrollid=FredBlogs
+weft ca register --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --adminName admin --enrollid=FredBlogs
 ```
 
 Fred can now be enrolled and then the identity used.
 
 ```
-weft enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid FredBlogs --enrollpwd <output from the register cmd> -r
+weft ca enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid FredBlogs --enrollpwd <output from the register cmd> -r
 ```
 
 ## Use as a module

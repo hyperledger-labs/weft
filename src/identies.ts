@@ -6,7 +6,7 @@ import * as WalletMigration from 'fabric-wallet-migration';
 import { Wallets, Wallet } from 'fabric-network';
 import FabricCAServices from 'fabric-ca-client';
 import { log } from './log';
-import { writeFileSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { resolveWalletPath } from './userutils';
 
 /**
@@ -92,6 +92,51 @@ export default class Identities {
             wallet = await Wallets.newFileSystemWallet(walletPath);
         }
         return wallet;
+    }
+
+    async importFromCryptoConfig(dir: string, msp_id: string): Promise<void> {
+        const cryptoDir = path.resolve(dir);
+        if (!existsSync(cryptoDir)) {
+            throw new Error(`Unable to find the directory ${dir}`);
+        }
+
+        // assume that the name is the core of the directory
+        const name = path.basename(cryptoDir);
+
+        const privateKeyPath = path.join(cryptoDir, 'msp', 'keystore', 'priv_sk');
+        if (!existsSync(privateKeyPath)) {
+            throw new Error(`Unable to find private key at ${privateKeyPath}`);
+        }
+        const privateKey = readFileSync(privateKeyPath, 'utf-8');
+
+        const certPath = path.join(cryptoDir, 'msp', 'signcerts', `${name}-cert.pem`);
+        if (!existsSync(certPath)) {
+            throw new Error(`Unable to find private key at ${privateKeyPath}`);
+        }
+        const certificate = readFileSync(certPath, 'utf-8');
+
+        // Create a new file system based wallet for managing identities.
+        const walletPath = path.resolve(this.walletpath);
+        const wallet = await this.getWallet(this.walletpath, this.is14Wallet);
+
+        // Check to see if we've already got the user.
+        const userIdentity = await wallet.get(name);
+        if (userIdentity) {
+            throw new Error(`An identity for the user "${name}" already exists in the wallet`);
+        }
+
+        const identity = {
+            credentials: {
+                certificate,
+                privateKey,
+            },
+            mspId: msp_id,
+            type: 'X.509',
+        };
+
+        await wallet.put(name, identity);
+
+        log({ msg: `Added identity under label ${name} to the wallet at ${walletPath}` });
     }
 
     /**

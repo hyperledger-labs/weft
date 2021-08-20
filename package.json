@@ -1,10 +1,13 @@
 {
   "name": "@hyperledgendary/weftility",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Simple CLI for testing transactions",
   "bin": {
     "weft": "lib/cli.js"
   },
+  "files": [
+    "lib/**/*"
+  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
