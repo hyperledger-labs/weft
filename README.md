@@ -1,5 +1,12 @@
 # Weftility
 
+> **1.0.0-0 BETA - Have re-ordered the command line options**
+
+**weft** /wɛft/ _noun_
+(in weaving) the crosswise threads on a loom that are passed over and under the warp threads to make cloth.
+
+---
+
 Simple command line utility and module, to help work with the identity and connection files from Hyperledger Fabric Peers, Fabric SDKs and IBM Blockchain Platform (IBP) and convert between them. This is intended to be a complement to the existing tools for each product. A lot of the code here is based on that in [hyperledger/fabric-samples](github.com/hyperledger/fabric-samples)
 
 The end goals are to obtain, irrespective of how the Fabric infrastructure is created. 
@@ -7,12 +14,11 @@ The end goals are to obtain, irrespective of how the Fabric infrastructure is cr
 - an *application wallet* for the Client SDKs to use to get identies
 - the *gateway connection profile to let the Client SDKs to connect
 - a MSP directory structure to permit the Fabric Peer CLIs to function
-- a set of JSON 'node' files to let the VSCode Blockchain Extension to connect [WIP]
 
-**weft** /wɛft/ _noun_
-
-(in weaving) the crosswise threads on a loom that are passed over and under the warp threads to make cloth.
-
+__New Features in Progress__
+- a set of JSON 'node' fils to let the VSCode Blockchain Extension to connect 
+- update documentation to include the 2.4-beta Fabric and the new Gateway SDKs
+- use as a module
 
 > NOTE: not formally supported software, this is a community resource. PRs welcome :-)
 
