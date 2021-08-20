@@ -1,6 +1,6 @@
 {
   "name": "@hyperledgendary/weftility",
-  "version": "1.0.1",
+  "version": "0.0.9",
   "description": "Simple CLI for testing transactions",
   "bin": {
     "weft": "lib/cli.js"
