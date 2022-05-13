@@ -1,30 +1,26 @@
-# Weftility
-
-> **1.0.0-0 BETA - Have re-ordered the command line options**
+# Weft
 
 **weft** /wɛft/ _noun_
 (in weaving) the crosswise threads on a loom that are passed over and under the warp threads to make cloth.
 
 ---
 
-Simple command line utility and module, to help work with the identity and connection files from Hyperledger Fabric Peers, Fabric SDKs and IBM Blockchain Platform (IBP) and convert between them. This is intended to be a complement to the existing tools for each product. A lot of the code here is based on that in [hyperledger/fabric-samples](github.com/hyperledger/fabric-samples)
+Simple command line utility and module, to help work Hyperledger Fabric, and other instations such as the IBM Blockchain Platform (IBP) and convert resources between them. This is intended to be a complement to the existing tools for each product. A lot of the code here is based on that in [hyperledger/fabric-samples](github.com/hyperledger/fabric-samples)
 
 The end goals are to obtain, irrespective of how the Fabric infrastructure is created. 
 
-- an *application wallet* for the Client SDKs to use to get identies
-- the *gateway connection profile to let the Client SDKs to connect
-- a MSP directory structure to permit the Fabric Peer CLIs to function
-
-__New Features in Progress__
-- a set of JSON 'node' fils to let the VSCode Blockchain Extension to connect 
-- update documentation to include the 2.4-beta Fabric and the new Gateway SDKs
-- use as a module
+- an *application wallets* and *idenities* for the Client SDKs to use
+- the gateway *connection profiles* to let the Client SDKs to connect
+- the MSP directory structure to permit the Fabric Peer CLIs to function
+- packaged Chaincode/SmartContract
 
 > NOTE: not formally supported software, this is a community resource. PRs welcome :-)
 
+> Documentation under development... PRs very welcome :-)
+
 ## Installation
 
-Minimum of node 12 needed.
+Minimum of node 16 needed; probably will work with node 14.
 
 Install as any node module, install globally for use as a CLI tool.
 
@@ -41,8 +37,8 @@ Commands:
   weft wallet    Work with a SDK Application Wallet
   weft mspids    Work with the MSP Credentials Directory structure
   weft ca        Work with the Fabric CA for identities
+  weft chaincode Work with a Chaincode Packages
   weft microfab  Process the ibp-microfab output; generates MSPCreds, Connection Profiles and Application wallets
-
 
 Options:
   --help         Show help  [boolean]
@@ -51,13 +47,12 @@ Options:
 For usage see https://github.com/hyperledendary/weftility
 ```
 
+## Working with Wallets
 
-## Working Application Wallets
-
-The v1.4 and v2 Application SDKs use a 'Wallet', typically stored on disk. You will at some point need to interact with these client sdks in-order to write an application. ft
+The 'classic' v1.4 and v2 Client SDKs use a 'Wallet', typically stored on disk. The new 'Gateway' SDKs also need identities, but they don't directly require or use filesystem wallet. Rather they required the individual identities/certificates. Though the on disk format used for wallets can be useful (they are JSON Files)
 
 ```
-weft wallet
+weft wallet -h
 
 Work with a SDK Application Wallet
 
@@ -77,7 +72,7 @@ Options:
 
 You can *import*, *export* or *list* identities in the application wallet. 
 
-For *import* you can import an identity either the JSON IBP format, or the MSPCredentials disk format.
+For *import* you can import an identity either in JSON file format, or the MSPCredentials disk format.
 
 ```
 Imports identities into an application wallet
@@ -96,13 +91,74 @@ Options:
   -m, --mspid         MSPID to assign in this wallet  [required]
 ```
 
+## Working with Chaincode
+
+### Packaging chaincode
+
+The top level command is 'chaincode package'. There are 3 subcommands depending on the 'format' of the package that you want to create. Either 'full' to include all the code for Peer Managed Chaincode Containers. 'ccaas' for the Chaincode-as-a-service builders, or 'k8s' for the K8S builder. 
+
+```
+weft chaincode package
+
+Create a chaincode package (tgz) to install on peers
+
+Commands:
+  cli.js chaincode package full  Include all code to run under Peer managed chaincode containers
+  cli.js chaincode package caas  Chaincode-as-a-service Builders for user managed chaincode containers
+  cli.js chaincode package k8s   K8S Builder for Kubernetes managed chaincode containers
+
+Chaincode Package:
+  -p, --path     Path to the root directory of the chaincode or file
+  -l, --label    Label of the chaincode to use  [required]
+  -q, --quiet    Quiet mode, only output the packageid to stdout  [boolean] [default: "false"]
+  -a, --archive  filename of the output tgz  [string]
+```
+
+- **label** Each chaincode package needs a label
+- **quiet** this will only output the PackageID - useful for scripting purposes
+- **archive** the filename of the output tgz file. If not specified it will be `<label>.tgz`
+- **path** need to provide the code for the full format, and for the other builders will be the (optional) location of the `META-INF` directory (the directory it is in)
+
+### Full Format
+
+```
+weft chaincode package full
+
+Include all code to run under Peer managed chaincode containers
+
+Chaincode Package:
+  -p, --path     Path to the root directory of the chaincode or file
+  -l, --label    Label of the chaincode to use  [required]
+  -q, --quiet    Quiet mode, only output the packageid to stdout  [boolean] [default: "false"]
+  -a, --archive  filename of the output tgz  [string]
+  -n, --lang     Language contract is written in  [choices: "auto", "go", "java", "javascript", "typescript"] [default: "auto"]
+```
+- **lang** is an optional parameter that can be specified to force the choice of language, otherwise it will be auto-detected.
 
 
-## Usage
 
-There are three scenarios here, with different starting points to show you how to get started.
+**Java**
+- Auto-detected if the path supplied 
+  - contains a `build.gradle/build.gradle.kts/pom.xml` files
+  - one or more JAR files
+  - is reference to a JAR file itself
+- For a single JAR referenced directly, the package will contain the META-INF in the same directory as the JAR (if it exists)
+- If the directory contains JARs, or the java build file all the contents will be included, subject to pre-filtering by the `.fabricignore` file
 
-### Using with Microfab
+**JavaScript**
+- Auto-dected if the path contains a `package.json`
+- All the content will be included subject to the `.npmignore` file. The `.fabricignore` file be processed as well before the .`.npmignore`
+
+**TypeScript**
+- Auto-detected if the path contains a `package.json` and a 'tsconfig.json` file
+- The `out` directory in the `tsconfig.json` is checked. All contents of this is included, along with `package.json` and `package-log.json` `npm-shrinkwrap.json` if present. The META-INF directory will also be included. All subject to pre-filtering by the `.fabricignore` file
+
+**Go**
+- Auto-detected if the path contains a `go.mod` file
+- All the contents will be included, subject to pre-filtering by the `.fabricignore` file
+
+
+## Working with Microfab
 As an example let's start a Microfab instance with 2 organizations
 
 ```
@@ -213,9 +269,9 @@ In a suitable shell, copy and execute the `export...` commands. Note that this i
 
 **This therefore gives you the ability to use both the SDKs, and the peer commands to interact with microfab.**
 
-## Use with IBP Instance
+## Use with IBM Blockchain Platform Instance
 
-It is recommended to use the [Ansible IBP Collection] to update, and maintain an IBP instance in production. Ansible tasks are available that can create identies, and deploy chaincodes. It produces the gateway connection profile as JSON that can be used directly in the application. 
+It is recommended to use the [Ansible IBP Collection]() to update, and maintain an IBP instance in production. Ansible tasks are available that can create identies, and deploy chaincodes. It produces the gateway connection profile as JSON that can be used directly in the application. 
 
 The identities are in the IBP json format. Import these into an application wallet as follows.
 
@@ -292,11 +348,6 @@ Fred can now be enrolled and then the identity used.
 ```
 weft ca enroll --name FredBlogs --profile ./test-network/organizations/peerOrganizations/org1.example.com/connection-org1.json --wallet ./_cfg/_wallets/org1 --enrollid FredBlogs --enrollpwd <output from the register cmd> -r
 ```
-
-## Use as a module
-
-Install as any module, `npm install --save @hyperledgendary/weftility`
-When run as a module, the console log statements are not output.
 
 ### Loading a connection profile
 Simplifies loading either as a JSON or YAML file

@@ -14,6 +14,7 @@ import { getGatewayProfile } from './gateways';
 import { log, enableCliLog, disableCliLog } from './log';
 import { MicrofabProcessor } from './microfab';
 import MSP from './msp';
+import ChaincodePackage, { Format, PackageConfig } from './chaincodePackage/chaincodePackage';
 
 const pjson = readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf-8');
 const version = JSON.parse(pjson).version;
@@ -64,7 +65,7 @@ const caBuilder = (yargs: any) => {
                         args['enrollpwd'] as string,
                     );
                 } catch (e) {
-                    log({ msg: e.message, error: true });
+                    log({ msg: (e as any).message, error: true });
                     process.exit(1);
                 }
             },
@@ -119,7 +120,7 @@ const caBuilder = (yargs: any) => {
                     }
                 } catch (e) {
                     enableCliLog();
-                    log({ msg: e.message, error: true });
+                    log({ msg: (e as any).message, error: true });
                     process.exit(1);
                 }
             },
@@ -272,10 +273,198 @@ const walletBuilder = (yargs: any) => {
         );
 };
 
-yargs
+const packagerAction = async (args: any) => {
+    if (args['quiet'] == true) {
+        disableCliLog();
+    }
+    const format = args['_'].pop();
+
+    try {
+        let config: PackageConfig;
+
+        if (!args['archive'] || args['archive'].trim() === '') {
+            args['archive'] = path.join(process.cwd(), `${args['label']}.tgz`);
+        }
+        log({ msg: `Packaging at path "${args.path}" with "${format}" packaging` });
+        log({ msg: `Archive created at "${args.archive}" with "${args.label}" label` });
+
+        switch (format) {
+            case 'full':
+                config = {
+                    path: args['path'],
+                    archivePath: args['archive'],
+                    label: args['label'],
+                    format: Format.FULL,
+                    cfg: {
+                        langauge: args['lang'],
+                    },
+                };
+                break;
+            case 'k8s':
+                config = {
+                    path: args['path'],
+                    archivePath: args['archive'],
+                    label: args['label'],
+                    format: Format.K8S,
+                    cfg: {
+                        imageurl: args['imageurl'],
+                        pullsecret: args['imagepullsecret'],
+                        pullpolicy: args['imagepullpolicy'],
+                    },
+                };
+                break;
+            case 'caas':
+                config = {
+                    path: args['path'],
+                    archivePath: args['archive'],
+                    label: args['label'],
+                    format: Format.CCAAS,
+                    cfg: {
+                        address: args['address'],
+                        tlsRequired: args['tlsrequired'],
+                        timeout: args['timeout'],
+                    },
+                };
+                break;
+            default:
+                throw new Error('Unknown');
+        }
+
+        log({ msg: `Config ${JSON.stringify(config)}` });
+
+        const packager = new ChaincodePackage(config);
+        const packageId = await packager.pack();
+
+        log({ msg: `\n` });
+        if (args['quiet'] == true) {
+            console.log(packageId);
+        } else {
+            log({ msg: `Created "${config.archivePath}" with id "${packageId}" ` });
+            log({ msg: `Label is "${config.label}" ` });
+        }
+    } catch (e) {
+        enableCliLog();
+        console.log(e);
+        log({ msg: (e as any).message, error: true });
+        throw e;
+    }
+};
+
+const chaincodeBuilder = (yargs: any) => {
+    return yargs
+        .command(
+            'package',
+            'Create a chaincode package (tgz) to install on peers',
+            (yargs: any) => {
+                return yargs
+                    .options({
+                        label: { alias: 'l', describe: 'Label of the chaincode to use', demandOption: true },
+                        path: {
+                            alias: 'p',
+                            describe: 'Path to the root directory of the chaincode or file',
+                            demandOption: false,
+                        },
+                        quiet: {
+                            alias: 'q',
+                            describe: 'Quiet mode, only output the packageid to stdout',
+                            demandOption: false,
+                            type: 'boolean',
+                            default: 'false',
+                        },
+                        archive: {
+                            alias: 'a',
+                            describe: 'filename of the output tgz',
+                            demandOption: false,
+                            type: 'string',
+                        },
+                    })
+                    .group(['label', 'quiet', 'archive'], 'Chaincode Package:')
+                    .command(
+                        'full',
+                        'Include all code to run under Peer managed chaincode containers',
+                        (yargs: any) => {
+                            return yargs
+                                .options({
+                                    lang: {
+                                        alias: 'n',
+                                        describe: 'Language contract is written in',
+                                        choices: ['auto', 'go', 'java', 'javascript', 'typescript'],
+                                        default: 'auto',
+                                    },
+                                })
+                                .group(['lang'], 'Chaincode Package:');
+                        },
+                        packagerAction,
+                    )
+                    .command(
+                        'caas',
+                        'Chaincode-as-a-service Builders for user managed chaincode containers',
+                        (yargs: any) => {
+                            return yargs
+                                .options({
+                                    address: {
+                                        type: 'string',
+                                        describe: 'Address of the chaincode process',
+                                        demandOption: true,
+                                    },
+                                    timeout: {
+                                        type: 'string',
+                                        describe: 'Connection timeout, default 15s',
+                                        demandOption: false,
+                                        default: '15s',
+                                    },
+                                    tls: {
+                                        type: 'boolean',
+                                        describe: 'TLSEnabled default is false',
+                                        demandOption: false,
+                                        default: 'false',
+                                    },
+                                })
+                                .group(['address', 'timeout', 'tls'], 'Chaincode Package:');
+                        },
+                        packagerAction,
+                    )
+                    .command(
+                        'k8s',
+                        'K8S Builder for Kubernetes managed chaincode containers',
+                        (yargs: any) => {
+                            return yargs
+                                .options({
+                                    imageurl: {
+                                        type: 'string',
+                                        describe: 'Image URL: $registry/$image-name:$image-label',
+                                        demandOption: true,
+                                    },
+                                    imagepullSecret: {
+                                        type: 'string',
+                                        describe: 'Image Pull Secret Name (not the secret itself)',
+                                        demandOption: true,
+                                    },
+                                    imagePullPolicy: {
+                                        type: 'string',
+                                        describe: 'Image Pull Policy',
+                                        demandOption: true,
+                                    },
+                                })
+                                .group(['imageurl', 'imagepullSecret', 'imagePullPolicy'], 'Chaincode Package:');
+                        },
+                        packagerAction,
+                    )
+                    .demandCommand(1);
+            },
+            (args: any) => {
+                console.log('package command handler' + args);
+            },
+        )
+        .demandCommand()
+        .group(['path'], 'Chaincode Package:');
+};
+
+const x = yargs
     .command('wallet', 'Work with a SDK Application Wallet', walletBuilder)
     .command('mspids', 'Work with a MSP Credentials Directory structure', mspidBuilder)
     .command('ca', 'Work with a Fabric CA for identities', caBuilder)
+    .command('chaincode', 'Work with a Chaincode Packages', chaincodeBuilder)
     .command(
         'microfab',
         'Process the ibp-microfab output; generates MSPCreds, Connection Profiles and Application wallets',
@@ -321,3 +510,15 @@ yargs
     .demandCommand()
     .epilog('For usage see https://github.com/hyperledendary/weftility')
     .describe('v', 'show version information').argv;
+
+(x as any)
+    .then(() => {
+        console.log('==>>>>>>>>> All done');
+    })
+    .catch((e: any) => {
+        console.log(e as any);
+    });
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+});
