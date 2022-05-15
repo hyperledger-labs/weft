@@ -1,7 +1,6 @@
 name: Publish package to GitHub Packages
 on:
-  release:
-    types: [created]
+    types: [closed]
 jobs:
   build:
     runs-on: ubuntu-latest 
