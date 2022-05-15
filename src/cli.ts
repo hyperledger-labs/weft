@@ -513,7 +513,7 @@ const x = yargs
 
 (x as any)
     .then(() => {
-        console.log('==>>>>>>>>> All done');
+        log({msg:`Complete`})
     })
     .catch((e: any) => {
         console.log(e as any);
