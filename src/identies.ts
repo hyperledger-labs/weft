@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as WalletMigration from 'fabric-wallet-migration';
 import { Wallets, Wallet } from 'fabric-network';
 import FabricCAServices from 'fabric-ca-client';
-import { log } from './log';
+import { log, Type } from './log';
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { resolveWalletPath } from './userutils';
 
@@ -194,7 +194,7 @@ export default class Identities {
         // Check to see if we've already got the user.
         const userIdentity = await wallet.get(name);
         if (!userIdentity) {
-            log({ msg: `An identity for the user "${name}" does not exist in the wallet`, error: true });
+            log({ msg: `An identity for the user "${name}" does not exist in the wallet`, type: Type.ERROR });
             return;
         }
 
@@ -306,7 +306,7 @@ export default class Identities {
         const adminIdentity = await wallet.get(adminUser);
         if (!adminIdentity) {
             const msg = `An identity for the admin user "${adminUser}" does not exist in the wallet`;
-            log({ msg, error: true });
+            log({ msg, type: Type.ERROR });
             throw new Error(msg);
         }
         const caInfo = this.profile.certificateAuthorities[caname];
