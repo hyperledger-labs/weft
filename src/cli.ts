@@ -11,7 +11,7 @@ import { readFileSync } from 'fs';
 import { resolveGatewayPath, resolveWalletPath, saneReadFile, createIfAbsent, clean } from './userutils';
 import Identities from './identies';
 import { getGatewayProfile } from './gateways';
-import { log, enableCliLog, disableCliLog } from './log';
+import { log, enableCliLog, disableCliLog, Type } from './log';
 import { MicrofabProcessor } from './microfab';
 import MSP from './msp';
 import ChaincodePackage, { Format, PackageConfig } from './chaincodePackage/chaincodePackage';
@@ -65,7 +65,7 @@ const caBuilder = (yargs: any) => {
                         args['enrollpwd'] as string,
                     );
                 } catch (e) {
-                    log({ msg: (e as any).message, error: true });
+                    log({ msg: (e as any).message, type: Type.ERROR });
                     process.exit(1);
                 }
             },
@@ -120,7 +120,7 @@ const caBuilder = (yargs: any) => {
                     }
                 } catch (e) {
                     enableCliLog();
-                    log({ msg: (e as any).message, error: true });
+                    log({ msg: (e as any).message, type: Type.ERROR });
                     process.exit(1);
                 }
             },
@@ -285,8 +285,10 @@ const packagerAction = async (args: any) => {
         if (!args['archive'] || args['archive'].trim() === '') {
             args['archive'] = path.join(process.cwd(), `${args['label']}.tgz`);
         }
-        log({ msg: `Packaging at path "${args.path}" with "${format}" packaging` });
-        log({ msg: `Archive created at "${args.archive}" with "${args.label}" label` });
+        log({ msg: `Packaging path :`, val: `${args.path}`, type: Type.NOTICE });
+        log({ msg: `Format         :`, val: `${format}`, type: Type.NOTICE });
+        log({ msg: `Archive        :`, val: `${args.archive}`, type: Type.NOTICE });
+        log({ msg: `Label          :`, val: `${args.label}`, type: Type.NOTICE });
 
         switch (format) {
             case 'full':
@@ -330,8 +332,6 @@ const packagerAction = async (args: any) => {
                 throw new Error('Unknown');
         }
 
-        log({ msg: `Config ${JSON.stringify(config)}` });
-
         const packager = new ChaincodePackage(config);
         const packageId = await packager.pack();
 
@@ -339,13 +339,14 @@ const packagerAction = async (args: any) => {
         if (args['quiet'] == true) {
             console.log(packageId);
         } else {
-            log({ msg: `Created "${config.archivePath}" with id "${packageId}" ` });
-            log({ msg: `Label is "${config.label}" ` });
+            log({ msg: `Created    :`, val: `${config.archivePath}`, type: Type.NOTICE });
+            log({ msg: `Package id :`, val: `${packageId} `, type: Type.NOTICE });
+            log({ msg: `Label      :`, val: `${config.label} `, type: Type.NOTICE });
         }
     } catch (e) {
         enableCliLog();
         console.log(e);
-        log({ msg: (e as any).message, error: true });
+        log({ msg: (e as any).message, type: Type.ERROR });
         throw e;
     }
 };
@@ -460,6 +461,22 @@ const chaincodeBuilder = (yargs: any) => {
         .group(['path'], 'Chaincode Package:');
 };
 
+// ToDo: Add in working with connection information
+// Unsure of exact semantics
+
+// const connectionBuilder = (yargs: any) => {
+//     return yargs
+//     .command('profiles','Work with Connection Profile files')
+//     .command('nodefiles','Work with Node files')
+//     .command('gateway','Work with information for Fabraic Gateway')
+//     .command('env','Work with connection information in Environment Variables', (yars)=>{
+//         return yargs
+//             .options({
+//                 'from':{describe:'Convert frm '},
+//             })
+//     })
+// }
+
 const x = yargs
     .command('wallet', 'Work with a SDK Application Wallet', walletBuilder)
     .command('mspids', 'Work with a MSP Credentials Directory structure', mspidBuilder)
@@ -501,6 +518,7 @@ const x = yargs
             );
         },
     )
+    .command('connection', 'Work with connection information - TBA')
     .help()
     .wrap(null)
     .alias('v', 'version')
@@ -516,7 +534,7 @@ const x = yargs
         log({ msg: `Complete` });
     })
     .catch((e: any) => {
-        console.log(e as any);
+        log({ msg: e.getMessage(), type: Type.ERROR });
     });
 
 process.on('unhandledRejection', (reason, p) => {

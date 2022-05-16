@@ -5,7 +5,7 @@
 */
 
 import { spawn } from 'child_process';
-import { log } from './log';
+import { log, Type } from './log';
 
 // A general purpose structure that can be used for any command.
 // This defines the important 'spawn' command. This executes the command
@@ -43,7 +43,7 @@ class Cmd {
             this.stdoutstr = [];
             call.on('exit', (code) => {
                 // eslint-disable-next-line no-console
-                log({ msg: `exit:: ${_name} code::${code}`, error: code !== 0 });
+                log({ msg: `exit:: ${_name} code::${code}`, type: code !== 0 ? Type.ERROR : Type.INFO });
                 if (code === 0) {
                     resolve(0);
                 } else {

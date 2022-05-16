@@ -6,12 +6,27 @@ import chalk from 'chalk';
 
 let asCli = false;
 
-export const log = ({ msg = '>', val = '', error = false }: { msg?: string; val?: string; error?: boolean }): void => {
+export enum Type {
+    INFO,
+    NOTICE,
+    WARN,
+    ERROR,
+}
+
+export const log = ({ msg = '>', val = '', type = Type.INFO }: { msg?: string; val?: string; type?: Type }): void => {
     if (asCli) {
-        if (error) {
-            console.log(chalk.bold.red(msg) + ' ' + val);
-        } else {
-            console.log(chalk.blue(msg) + ' ' + val);
+        switch (type) {
+            case Type.ERROR:
+                console.log(`${chalk.bold.red(msg)}  ${chalk.red(val)}`);
+                break;
+            case Type.WARN:
+                console.log(`${chalk.bold.yellow(msg)}  ${chalk.green(val)}`);
+                break;
+            case Type.NOTICE:
+                console.log(`${chalk.bold.green(msg)}  ${chalk.green(val)}`);
+                break;
+            default:
+                console.log(`${chalk.bold.blue(msg)} ${chalk.blue(val)}`);
         }
     }
 };
