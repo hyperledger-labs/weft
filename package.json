@@ -1,6 +1,6 @@
 {
   "name": "@hyperledgendary/weft",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Simple CLI for testing transactions",
   "bin": {
     "weft": "lib/cli.js"
@@ -53,7 +53,6 @@
     "@types/ignore-walk": "^4.0.0",
     "@types/source-map-support": "^0.5.4",
     "chalk": "^4.1.1",
-
     "fabric-ca-client": "^2.2.12",
     "fabric-network": "^2.2.12",
     "fabric-wallet-migration": "^0.2.0",
