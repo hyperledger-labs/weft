@@ -461,22 +461,6 @@ const chaincodeBuilder = (yargs: any) => {
         .group(['path'], 'Chaincode Package:');
 };
 
-// ToDo: Add in working with connection information
-// Unsure of exact semantics
-
-// const connectionBuilder = (yargs: any) => {
-//     return yargs
-//     .command('profiles','Work with Connection Profile files')
-//     .command('nodefiles','Work with Node files')
-//     .command('gateway','Work with information for Fabraic Gateway')
-//     .command('env','Work with connection information in Environment Variables', (yars)=>{
-//         return yargs
-//             .options({
-//                 'from':{describe:'Convert frm '},
-//             })
-//     })
-// }
-
 const x = yargs
     .command('wallet', 'Work with a SDK Application Wallet', walletBuilder)
     .command('mspids', 'Work with a MSP Credentials Directory structure', mspidBuilder)
@@ -518,7 +502,6 @@ const x = yargs
             );
         },
     )
-    .command('connection', 'Work with connection information - TBA')
     .help()
     .wrap(null)
     .alias('v', 'version')
