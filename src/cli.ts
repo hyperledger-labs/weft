@@ -509,7 +509,7 @@ const x = yargs
     .help()
     .strict()
     .demandCommand()
-    .epilog('For usage see https://github.com/hyperledendary/weftility')
+    .epilog('For usage see https://github.com/hyperledger-labs/weft')
     .describe('v', 'show version information').argv;
 
 (x as any)

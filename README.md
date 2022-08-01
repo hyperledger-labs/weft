@@ -20,12 +20,12 @@ The end goals are to obtain, irrespective of how the Fabric infrastructure is cr
 
 ## Installation
 
-Minimum of node 16 needed; probably will work with node 14.
+Minimum of node 16 needed; note that the *HyperledgerLab* are recommended to push to GitHub Packages; this does require a [little setup](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
 
-Install as any node module, install globally for use as a CLI tool.
+Install as any node tool
 
 ```
-npm install -g @hyperledgendary/weft
+npm install -g @hyperledger-labs/weft
 ```
 
 ## Commands available
@@ -44,7 +44,6 @@ Options:
   --help         Show help  [boolean]
   -v, --version  Show version number  [boolean]
 
-For usage see https://github.com/hyperledendary/weftility
 ```
 
 ## Working with Wallets
@@ -103,9 +102,9 @@ weft chaincode package
 Create a chaincode package (tgz) to install on peers
 
 Commands:
-  cli.js chaincode package full  Include all code to run under Peer managed chaincode containers
-  cli.js chaincode package caas  Chaincode-as-a-service Builders for user managed chaincode containers
-  cli.js chaincode package k8s   K8S Builder for Kubernetes managed chaincode containers
+  weft chaincode package full  Include all code to run under Peer managed chaincode containers
+  weft chaincode package caas  Chaincode-as-a-service Builders for user managed chaincode containers
+  weft chaincode package k8s   K8S Builder for Kubernetes managed chaincode containers
 
 Chaincode Package:
   -p, --path     Path to the root directory of the chaincode or file
