@@ -1,7 +1,9 @@
 name: Publish package to GitHub Packages
 on:
-  milestone:
-    types: [closed]
+  create:
+    tags:
+      - "*"
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest 
