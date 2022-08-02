@@ -36,7 +36,7 @@ export default class K8SPackager implements IPackager {
 
         // create the outer tgz.
         const outerTgz = new TGZHelper(this.archivePath);
-        const metadata = { type: 'node', label: this.label };
+        const metadata = { type: 'k8s', label: this.label };
 
         await outerTgz.entryText(JSON.stringify(metadata), 'metadata.json');
         await outerTgz.entryFile(tmp, 'code.tar.gz');
