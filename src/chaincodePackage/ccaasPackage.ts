@@ -28,13 +28,13 @@ export default class CCAASPackager implements IPackager {
             tls_required: this.cfg.tlsRequired,
         };
         const innerTgz = new TGZHelper();
-        await innerTgz.entryText(JSON.stringify(connection), 'src/connection.json');
+        await innerTgz.entryText(JSON.stringify(connection), 'connection.json');
         // finalize the innerTgz, should flush to disk
         const tmp = await innerTgz.finalize();
 
         // create the outer tgz.
         const outerTgz = new TGZHelper(this.archivePath);
-        const metadata = { type: 'node', label: this.label };
+        const metadata = { type: 'ccaas', label: this.label };
 
         await outerTgz.entryText(JSON.stringify(metadata), 'metadata.json');
         await outerTgz.entryFile(tmp, 'code.tar.gz');
