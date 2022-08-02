@@ -28,6 +28,12 @@ Install as any node tool
 npm install -g @hyperledger-labs/weft
 ```
 
+or to install from source (avoiding github package authentication)
+
+```
+curl -sSL https://raw.githubusercontent.com/hyperledger-labs/weft/main/install.sh | sh
+```
+
 ## Commands available
 
 ```
