@@ -9,6 +9,3 @@ npm pack
 npm install -g $(ls hyperledger-labs-weft-*)
 popd
 rm -rf $tmp_dir
-
-
-echo `For details   weft --help `
