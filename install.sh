@@ -11,7 +11,4 @@ popd
 rm -rf $tmp_dir
 
 
-
-
-echo ------------------------------------------------------------------------
-weft -h
+echo `For details   weft --help `
