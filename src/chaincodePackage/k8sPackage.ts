@@ -25,12 +25,11 @@ export default class K8SPackager implements IPackager {
 
     private async asService(): Promise<void> {
         const connection = {
-            imageurl: this.cfg.imageurl,
-            pullsecret: this.cfg.pullsecret,
-            pullpolicy: this.cfg.pullpolicy,
+            name: this.cfg.imagename,
+            digest: this.cfg.digest,
         };
         const innerTgz = new TGZHelper();
-        await innerTgz.entryText(JSON.stringify(connection), 'src/connection.json');
+        await innerTgz.entryText(JSON.stringify(connection), 'image.json');
         // finalize the innerTgz, should flush to disk
         const tmp = await innerTgz.finalize();
 
