@@ -49,9 +49,8 @@ export interface ServiceCfg {
 }
 
 export interface k8sCfg {
-    imageurl: string;
-    pullsecret: string;
-    pullpolicy: string;
+    imagename: string;
+    digest: string;
 }
 
 export interface FullCfg {
@@ -71,9 +70,20 @@ export default class ChaincodePackage {
     private cfg: ServiceCfg | k8sCfg | FullCfg;
 
     public constructor(config: PackageConfig) {
-        this.ccpath = path.resolve(config.path);
-        if (!fs.existsSync(this.ccpath)) {
-            throw new Error(`Can not find ${this.ccpath} does not exist`);
+        if (config.format == Format.FULL) {
+            this.ccpath = path.resolve(config.path);
+            if (!fs.existsSync(this.ccpath)) {
+                throw new Error(`Can not find ${this.ccpath} does not exist`);
+            }
+        } else {
+            // only check if it's been given incase of couch db indices
+            if (config.path && config.path !== '') {
+                this.ccpath = path.resolve(config.path);
+                if (!fs.existsSync(this.ccpath)) {
+                    throw new Error(`Can not find ${this.ccpath} does not exist`);
+                }
+            }
+            this.ccpath = '';
         }
         this.label = config.label;
         this.cfg = config.cfg;

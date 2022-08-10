@@ -309,9 +309,8 @@ const packagerAction = async (args: any) => {
                     label: args['label'],
                     format: Format.K8S,
                     cfg: {
-                        imageurl: args['imageurl'],
-                        pullsecret: args['imagepullsecret'],
-                        pullpolicy: args['imagepullpolicy'],
+                        imagename: args['name'],
+                        digest: args['digest'],
                     },
                 };
                 break;
@@ -431,23 +430,18 @@ const chaincodeBuilder = (yargs: any) => {
                         (yargs: any) => {
                             return yargs
                                 .options({
-                                    imageurl: {
+                                    name: {
                                         type: 'string',
-                                        describe: 'Image URL: $registry/$image-name:$image-label',
+                                        describe: 'Image name: $registry/$image-name:$image-label',
                                         demandOption: true,
                                     },
-                                    imagepullSecret: {
+                                    digest: {
                                         type: 'string',
-                                        describe: 'Image Pull Secret Name (not the secret itself)',
-                                        demandOption: true,
-                                    },
-                                    imagePullPolicy: {
-                                        type: 'string',
-                                        describe: 'Image Pull Policy',
+                                        describe: 'Image digest (from the registry)',
                                         demandOption: true,
                                     },
                                 })
-                                .group(['imageurl', 'imagepullSecret', 'imagePullPolicy'], 'Chaincode Package:');
+                                .group(['name', 'digest'], 'Chaincode Package:');
                         },
                         packagerAction,
                     )
