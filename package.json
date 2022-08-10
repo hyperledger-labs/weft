@@ -1,6 +1,6 @@
 {
   "name": "@hyperledger-labs/weft",
-  "version": "0.1.0",
+  "version": "0.0.5",
   "description": "Utility CLI to help with using Hyperledger Fabric",
   "bin": {
     "weft": "lib/cli.js"
