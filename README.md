@@ -16,19 +16,22 @@ The end goals are to obtain, irrespective of how the Fabric infrastructure is cr
 
 > NOTE: not formally supported software, this is a community resource. PRs welcome :-)
 
-> Documentation under development... PRs very welcome :-)
+*Latest Updates*
+- Now publishing packages to NPMJS rather than GitHub Packages.
+  - hope to use github packages for beta drivers
+- K8S Builder now properly supported
 
 ## Installation
 
-Minimum of node 16 needed; note that the *HyperledgerLab* are recommended to push to GitHub Packages; this does require a [little setup](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#installing-a-package)
+Minimum of node 16 strongly suggested, you're welcome to try 14 of course.  
 
-Install as any node tool
+Install as any node tool 
 
 ```
 npm install -g @hyperledger-labs/weft
 ```
 
-or to install from source (avoiding github package authentication)
+or to install from the main branch source (will be ahead potentially of the released version)
 
 ```
 curl -sSL https://raw.githubusercontent.com/hyperledger-labs/weft/main/install.sh | sh
