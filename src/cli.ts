@@ -465,21 +465,43 @@ const x = yargs
         'Process the ibp-microfab output; generates MSPCreds, Connection Profiles and Application wallets',
         (yargs) => {
             return yargs.options({
-                wallet: { alias: 'w', describe: 'Path to parent directory of application wallets', demandOption: true },
-                profile: { alias: 'p', describe: 'Path to the parent directory of Gateway files', demandOption: true },
-                mspconfig: { alias: 'm', describe: 'Path to the root directory of the MSP config', demandOption: true },
+                wallet: {
+                    alias: 'w',
+                    describe: 'Path to parent directory of application wallets',
+                    demandOption: false,
+                },
+                profile: { alias: 'p', describe: 'Path to the parent directory of Gateway files', demandOption: false },
+                mspconfig: {
+                    alias: 'm',
+                    describe: 'Path to the root directory of the MSP config',
+                    demandOption: false,
+                },
                 config: {
                     alias: 'c',
                     describe: 'File with JSON configuration from Microfab  - for stdin',
                     default: '-',
                 },
                 force: { alias: 'f', describe: 'Force cleaning of directories', type: 'boolean', default: false },
+                gateway: {
+                    alias: 'g',
+                    describe: 'Path to directory for Gateway Connection information',
+                    demandOptions: false,
+                },
             });
         },
         async (args) => {
-            createIfAbsent(args['profile'] as string);
-            createIfAbsent(args['wallet'] as string);
-            createIfAbsent(args['mspconfig'] as string);
+            if (args['profile']) {
+                createIfAbsent(args['profile'] as string);
+            }
+            if (args['wallet']) {
+                createIfAbsent(args['wallet'] as string);
+            }
+            if (args['mspconfig']) {
+                createIfAbsent(args['mspconfig'] as string);
+            }
+            if (args['gateway']) {
+                createIfAbsent(args['gateway'] as string);
+            }
 
             if (args.force) {
                 clean(args['profile'] as string);
@@ -493,6 +515,7 @@ const x = yargs
                 args['profile'] as string,
                 args['wallet'] as string,
                 args['mspconfig'] as string,
+                args['gateway'] as string,
             );
         },
     )

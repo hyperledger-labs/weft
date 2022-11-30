@@ -14,7 +14,7 @@
     "clean": "rimraf lib",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
-    "build": "npm run format && npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty && npm link",
+    "build": "npm run format && npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
     "release": "standard-version",
     "test": "jest"
   },
