@@ -12,7 +12,7 @@ type callbackFn = (v: any) => void;
 import { log } from './log';
 
 export interface EnvVars {
-    [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string } };
+    [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string }; tlsrootcert: string };
 }
 
 export class MicrofabProcessor {
@@ -21,6 +21,7 @@ export class MicrofabProcessor {
         gatewaypath: string,
         walletpath: string,
         cryptopath: string,
+        gwPath: string,
     ): Promise<void> {
         // JSON configuration either from stdin or filename
         let cfgStr = '';
@@ -35,7 +36,7 @@ export class MicrofabProcessor {
         }
 
         const config = JSON.parse(cfgStr);
-        await this.process({ config, gatewaypath, walletpath, cryptopath });
+        await this.process({ config, gatewaypath, walletpath, cryptopath, gwPath });
     }
 
     public async process({
@@ -43,11 +44,13 @@ export class MicrofabProcessor {
         gatewaypath,
         walletpath,
         cryptopath,
+        gwPath,
     }: {
         config: any;
         gatewaypath: string;
         walletpath: string;
         cryptopath: string;
+        gwPath: string;
     }): Promise<EnvVars> {
         const envvars: EnvVars = {};
         // locate the gateways in the file, and create the connection profile
@@ -68,9 +71,29 @@ export class MicrofabProcessor {
                         mspid: gateway.organizations[org].mspid,
                         peers: gateway.organizations[org].peers as string[],
                         ids: {},
+                        tlsrootcert: '',
                     };
                 },
             );
+
+        console.log(envvars);
+        // get the peers certificates and root ca certificate
+        config
+            .filter((c: { type: string }) => c.type === 'fabric-peer' || c.type === 'fabric-orderer')
+            .filter(
+                (node: { id: string; tls_ca_root_cert: string; pem: string; wallet: string }) =>
+                    node.tls_ca_root_cert && node.tls_ca_root_cert !== '',
+            )
+            .forEach((node: { id: string; tls_ca_root_cert: string; pem: string; wallet: string }) => {
+                const certRoot = path.resolve(cryptopath, 'tls', sanitize(node.id));
+                mkdirp.sync(certRoot);
+
+                const caRootCert = Buffer.from(node.tls_ca_root_cert, 'base64').toString();
+                const peerCert = Buffer.from(node.pem, 'base64').toString();
+
+                writeFileSync(path.join(certRoot, `tlsca-${node.id}-cert.pem`), caRootCert);
+                writeFileSync(path.join(certRoot, `${node.id}-cert.pem`), peerCert);
+            });
 
         // locate the identities
         interface IdStructure {
@@ -104,13 +127,18 @@ export class MicrofabProcessor {
                 const privateKey = Buffer.from(id.private_key, 'base64').toString();
                 const pemfile = Buffer.from(id.cert, 'base64').toString();
                 const capem = Buffer.from(id.ca, 'base64').toString();
-                writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `${id.id}.pem`), pemfile);
-                writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `${id.id}.pem`), pemfile);
+
+                // Some of the Fabric tools, specifically the fabric-ca-client assume that the certificate is referred to as cert.pem
+                // writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `${id.id}.pem`), pemfile);
+                // writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `${id.id}.pem`), pemfile);
+                writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `cert.pem`), pemfile);
+                writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `cert.pem`), pemfile);
+
                 writeFileSync(path.join(cryptoroot, 'msp', 'keystore', `cert_sk`), privateKey);
                 writeFileSync(path.join(cryptoroot, 'msp', 'cacerts', 'ca.pem'), capem);
 
                 if (envvars[id.wallet]) {
-                    envvars[id.wallet].ids[id.id] = path.join(cryptoroot, 'msp'); //push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
+                    envvars[id.wallet].ids[id.id] = path.join(cryptoroot, 'msp');
                 }
             },
         );
@@ -118,16 +146,22 @@ export class MicrofabProcessor {
         log({ msg: '\nEnvironment variables:' });
         for (const org in envvars) {
             const value = envvars[org];
+            log({ msg: JSON.stringify(value) });
             for (const id in value.ids) {
                 log({ msg: `\nFor ${id} @  ${org} use these:\n` });
                 console.log(`export CORE_PEER_LOCALMSPID=${value.mspid}`);
                 console.log(`export CORE_PEER_MSPCONFIGPATH=${value.ids[id]}`);
+                console.log(`export CORE_PEER_TLS_ENABLED=true`);
+                console.log(`export CORE_PEER_TLS_ROOT_CERT_FILE=${value.tlsrootcert}`);
                 value.peers.forEach((p) => {
                     console.log(`export CORE_PEER_ADDRESS=${p}`);
                 });
-                // log({ msg: JSON.stringify(value) });
             }
         }
+        if (gwPath) {
+            writeFileSync(path.join(gwPath, 'info.json'), '{}');
+        }
+
         return envvars;
     }
 
