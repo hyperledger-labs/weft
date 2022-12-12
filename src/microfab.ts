@@ -127,13 +127,18 @@ export class MicrofabProcessor {
                 const privateKey = Buffer.from(id.private_key, 'base64').toString();
                 const pemfile = Buffer.from(id.cert, 'base64').toString();
                 const capem = Buffer.from(id.ca, 'base64').toString();
-                writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `${id.id}.pem`), pemfile);
-                writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `${id.id}.pem`), pemfile);
+
+                // Some of the Fabric tools, specifically the fabric-ca-client assume that the certificate is referred to as cert.pem
+                // writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `${id.id}.pem`), pemfile);
+                // writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `${id.id}.pem`), pemfile);
+                writeFileSync(path.join(cryptoroot, 'msp', 'signcerts', `cert.pem`), pemfile);
+                writeFileSync(path.join(cryptoroot, 'msp', 'admincerts', `cert.pem`), pemfile);
+
                 writeFileSync(path.join(cryptoroot, 'msp', 'keystore', `cert_sk`), privateKey);
                 writeFileSync(path.join(cryptoroot, 'msp', 'cacerts', 'ca.pem'), capem);
 
                 if (envvars[id.wallet]) {
-                    envvars[id.wallet].ids[id.id] = path.join(cryptoroot, 'msp'); //push(`export CORE_PEER_MSPCONFIGPATH=${path.join(cryptoroot, 'msp')}`);
+                    envvars[id.wallet].ids[id.id] = path.join(cryptoroot, 'msp');
                 }
             },
         );
