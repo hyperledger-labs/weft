@@ -75,8 +75,6 @@ export class MicrofabProcessor {
                     };
                 },
             );
-
-        console.log(envvars);
         // get the peers certificates and root ca certificate
         config
             .filter((c: { type: string }) => c.type === 'fabric-peer' || c.type === 'fabric-orderer')
