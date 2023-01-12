@@ -1,6 +1,6 @@
 {
   "name": "@hyperledger-labs/weft",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Utility CLI to help with using Hyperledger Fabric",
   "bin": {
     "weft": "lib/cli.js"
@@ -30,6 +30,7 @@
   "author": "",
   "license": "Apache 2.0",
   "devDependencies": {
+    "@types/dockerode": "^3.3.14",
     "@types/jest": "^28.1.2",
     "@types/js-yaml": "^4.0.5",
     "@types/mkdirp": "^1.0.2",
@@ -53,6 +54,7 @@
     "@types/ignore-walk": "^4.0.0",
     "@types/source-map-support": "^0.5.4",
     "chalk": "^4.1.1",
+    "dockerode": "^3.3.4",
     "fabric-ca-client": "^2.2.13",
     "fabric-network": "^2.2.13",
     "fabric-wallet-migration": "^0.2.0",

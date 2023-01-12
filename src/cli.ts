@@ -470,7 +470,11 @@ const x = yargs
                     describe: 'Path to parent directory of application wallets',
                     demandOption: false,
                 },
-                profile: { alias: 'p', describe: 'Path to the parent directory of Gateway files', demandOption: false },
+                profile: {
+                    alias: 'p',
+                    describe: 'Path to the parent directory of Gateway files',
+                    demandOption: false,
+                },
                 mspconfig: {
                     alias: 'm',
                     describe: 'Path to the root directory of the MSP config',
@@ -488,6 +492,19 @@ const x = yargs
                     demandOptions: false,
                 },
             });
+            // .command(
+            //     'start',
+            //     'starts Microfab',
+            //     (yargs) => {
+            //         yargs.options({ spec: { describe: 'specification', default: 'default' } });
+            //     },
+            //     async (args) => {
+            //         console.log('Starting ' + args.spec);
+
+            //         const microFabProcessor = new MicrofabProcessor();
+            //         microFabProcessor.start(args.spec as string);
+            //     },
+            // );
         },
         async (args) => {
             if (args['profile']) {
