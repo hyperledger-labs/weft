@@ -8,12 +8,17 @@ import * as mkdirp from 'mkdirp';
 import sanitize from 'sanitize-filename';
 import Identities from './identies';
 
+// import { saneReadFile } from './userutils';
+// import Dockerode from 'dockerode';
+
 type callbackFn = (v: any) => void;
 import { log } from './log';
 
 export interface EnvVars {
     [org: string]: { mspid: string; peers: string[]; ids: { [id: string]: string }; tlsrootcert: string };
 }
+
+// const DOCKER_IMAGE = 'ghcr.io/ibm-blockchain/microfab:sha-804d238aa847e1b4279c26b331c81c9a3807ad0e';
 
 export class MicrofabProcessor {
     public async processFile(
@@ -149,8 +154,10 @@ export class MicrofabProcessor {
                 log({ msg: `\nFor ${id} @  ${org} use these:\n` });
                 console.log(`export CORE_PEER_LOCALMSPID=${value.mspid}`);
                 console.log(`export CORE_PEER_MSPCONFIGPATH=${value.ids[id]}`);
-                console.log(`export CORE_PEER_TLS_ENABLED=true`);
-                console.log(`export CORE_PEER_TLS_ROOT_CERT_FILE=${value.tlsrootcert}`);
+                if (value.tlsrootcert && value.tlsrootcert !== '') {
+                    console.log(`export CORE_PEER_TLS_ENABLED=true`);
+                    console.log(`export CORE_PEER_TLS_ROOT_CERT_FILE=${value.tlsrootcert}`);
+                }
                 value.peers.forEach((p) => {
                     console.log(`export CORE_PEER_ADDRESS=${p}`);
                 });
