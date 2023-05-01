@@ -168,7 +168,7 @@ const mspidBuilder = (yargs: any) => {
 const walletBuilder = (yargs: any) => {
     return yargs
         .options({
-            walletpath: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
+            wallet: { alias: 'w', describe: 'Path to application wallet', demandOption: true },
             compat: {
                 alias: 'c',
                 describe: 'Set to use the 1.4 wallet format',
